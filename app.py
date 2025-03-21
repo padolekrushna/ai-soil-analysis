@@ -66,9 +66,8 @@ def user_input_features():
 # User input features
 input_data = user_input_features()
 
-# Check if input_data is a pandas DataFrame
-if not isinstance(input_data, pd.DataFrame):
-    input_data = pd.DataFrame(input_data)
+# Ensure input data is a pandas DataFrame with proper columns
+input_data = pd.DataFrame(input_data)
 
 # ColumnTransformer setup with all 18 features
 column_transformer = ColumnTransformer(
@@ -82,7 +81,7 @@ column_transformer = ColumnTransformer(
         ]),
     ])
 
-# Apply the transformer to the input data
+# Apply the transformer to the input data (input_data is now a DataFrame)
 input_data_transformed = column_transformer.fit_transform(input_data)
 
 # Preprocess input data (standard scaling)
