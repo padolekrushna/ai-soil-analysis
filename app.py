@@ -74,7 +74,7 @@ column_transformer = ColumnTransformer(
             'Nutrient_Phosphorus_mg_kg', 'Nutrient_Potassium_mg_kg', 'pH_Level', 
             'Visible_Light_400nm', 'Visible_Light_700nm', 'Temperature_C', 
             'Moisture_Content_%', 'Electrical_Conductivity_dS_m', 'Organic_Matter_%', 
-            'GPS_Latitude', 'GPS_Longitude', 'Time_of_Measurement', 'Feature_17', 'Feature_18', 'Feature_19 
+            'GPS_Latitude', 'GPS_Longitude', 'Time_of_Measurement', 'Feature_17', 'Feature_18', 'Feature_19' 
         ]),
     ])
 
