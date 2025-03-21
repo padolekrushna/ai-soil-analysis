@@ -1,106 +1,124 @@
 import streamlit as st
-import pandas as pd
 import joblib
-from sklearn.preprocessing import StandardScaler
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
+import pandas as pd
+import numpy as np
 
-# Load models
-classification_model = joblib.load('model/final_combined_classification_model.pkl')
-regression_model = joblib.load('model/final_combined_regression_model.pkl')
+# Page Configuration
+st.set_page_config(
+    page_title="Soil Analysis Predictor", 
+    page_icon="🌱", 
+    layout="wide"
+)
 
-# Load dataset
-dataset = pd.read_csv('data/final_combined_soil_dataset.csv')
+# Custom CSS
+st.markdown("""
+<style>
+.big-font {
+    font-size:20px !important;
+}
+.highlight {
+    background-color: #f0f2f6;
+    padding: 10px;
+    border-radius: 5px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-# Streamlit Interface
-st.title('Soil Analysis Prediction')
+# Load Models
+@st.cache_resource
+def load_models():
+    regression_model = joblib.load('final_combined_regression_model.pkl')
+    classification_model = joblib.load('final_combined_classification_model.pkl')
+    return regression_model, classification_model
 
-st.sidebar.header('User Input Parameters')
+regression_model, classification_model = load_models()
 
-def user_input_features():
-    # Define all 18 features, including default values
-    NIR_Spectroscopy_900nm = st.sidebar.number_input('NIR_Spectroscopy_900nm', value=0.0)
-    NIR_Spectroscopy_2500nm = st.sidebar.number_input('NIR_Spectroscopy_2500nm', value=0.0)
-    Nutrient_Nitrogen_mg_kg = st.sidebar.number_input('Nutrient_Nitrogen_mg_kg', value=0.0)
-    Nutrient_Phosphorus_mg_kg = st.sidebar.number_input('Nutrient_Phosphorus_mg_kg', value=0.0)
-    Nutrient_Potassium_mg_kg = st.sidebar.number_input('Nutrient_Potassium_mg_kg', value=0.0)
-    pH_Level = st.sidebar.number_input('pH_Level', value=7.0)
-    Visible_Light_400nm = st.sidebar.number_input('Visible_Light_400nm', value=0.0)
-    Visible_Light_700nm = st.sidebar.number_input('Visible_Light_700nm', value=0.0)
-    Temperature_C = st.sidebar.number_input('Temperature_C', value=25.0)
-    Moisture_Content_ = st.sidebar.number_input('Moisture_Content_%', value=0.0)
-    Electrical_Conductivity_dS_m = st.sidebar.number_input('Electrical_Conductivity_dS_m', value=0.0)
-    Organic_Matter_ = st.sidebar.number_input('Organic_Matter_%', value=0.0)
-    GPS_Latitude = st.sidebar.number_input('GPS_Latitude', value=0.0)
-    GPS_Longitude = st.sidebar.number_input('GPS_Longitude', value=0.0)
-    Time_of_Measurement = st.sidebar.number_input('Time_of_Measurement', value=0.0)
+# Prediction Function
+def predict_soil_characteristics(input_data):
+    # Regression Prediction
+    regression_predictions = regression_model.predict(input_data)[0]
+    target_columns = [
+        'Fertility_Score', 
+        'Nutrient_Nitrogen_mg_kg', 
+        'Nutrient_Phosphorus_mg_kg',
+        'Nutrient_Potassium_mg_kg', 
+        'Organic_Matter_%', 
+        'Water_Retention_Capacity',
+        'Lime_Requirement', 
+        'Soil_Erosion_Risk'
+    ]
+    regression_results = dict(zip(target_columns, regression_predictions))
+    
+    # Classification Prediction
+    soil_type = classification_model.predict(input_data)[0]
+    
+    return regression_results, soil_type
 
-    # Placeholder for any missing features
-    feature_17 = 0.0  # Add missing feature here
-    feature_18 = 0.0  # Add missing feature here
-    feature_19 = 0.0
-
-    features = {
-        'NIR_Spectroscopy_900nm': NIR_Spectroscopy_900nm,
-        'NIR_Spectroscopy_2500nm': NIR_Spectroscopy_2500nm,
-        'Nutrient_Nitrogen_mg_kg': Nutrient_Nitrogen_mg_kg,
-        'Nutrient_Phosphorus_mg_kg': Nutrient_Phosphorus_mg_kg,
-        'Nutrient_Potassium_mg_kg': Nutrient_Potassium_mg_kg,
-        'pH_Level': pH_Level,
-        'Visible_Light_400nm': Visible_Light_400nm,
-        'Visible_Light_700nm': Visible_Light_700nm,
-        'Temperature_C': Temperature_C,
-        'Moisture_Content_%': Moisture_Content_,
-        'Electrical_Conductivity_dS_m': Electrical_Conductivity_dS_m,
-        'Organic_Matter_%': Organic_Matter_,
-        'GPS_Latitude': GPS_Latitude,
-        'GPS_Longitude': GPS_Longitude,
-        'Time_of_Measurement': Time_of_Measurement,
-        'Feature_17': feature_17,  # Add missing feature
-        'Feature_18': feature_18,   # Add missing feature
-        'Feature_19': feature_19
+# Main Streamlit App
+def main():
+    st.title("🌍 Soil Analysis Predictor")
+    st.markdown("### Advanced Machine Learning Model for Soil Characterization")
+    
+    # Sidebar for Input
+    st.sidebar.header("Soil Parameters Input")
+    
+    # Input Features
+    input_features = {
+        'NIR_Spectroscopy_900nm': st.sidebar.number_input('NIR Spectroscopy 900nm', value=0.5, step=0.01),
+        'NIR_Spectroscopy_2500nm': st.sidebar.number_input('NIR Spectroscopy 2500nm', value=0.3, step=0.01),
+        'Visible_Light_400nm': st.sidebar.number_input('Visible Light 400nm', value=0.2, step=0.01),
+        'Visible_Light_700nm': st.sidebar.number_input('Visible Light 700nm', value=0.3, step=0.01),
+        'Temperature_C': st.sidebar.number_input('Temperature (°C)', value=25.0, step=0.1),
+        'Moisture_Content_%': st.sidebar.number_input('Moisture Content (%)', value=30.0, step=0.1),
+        'pH_Level': st.sidebar.number_input('pH Level', value=7.0, step=0.1),
+        'Electrical_Conductivity_dS_m': st.sidebar.number_input('Electrical Conductivity (dS/m)', value=0.5, step=0.01),
+        'GPS_Latitude': st.sidebar.number_input('GPS Latitude', value=0.0, step=0.001),
+        'GPS_Longitude': st.sidebar.number_input('GPS Longitude', value=0.0, step=0.001),
+        'Time_of_Measurement': st.sidebar.number_input('Time of Measurement', value=12, step=1)
     }
+    
+    # Create prediction button
+    if st.sidebar.button('Predict Soil Characteristics'):
+        # Convert input to DataFrame
+        input_df = pd.DataFrame([input_features])
+        
+        try:
+            # Get Predictions
+            regression_results, soil_type = predict_soil_characteristics(input_df)
+            
+            # Display Results
+            st.subheader("🔬 Prediction Results")
+            
+            # Regression Results
+            st.markdown("#### Soil Regression Metrics")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.metric("Fertility Score", f"{regression_results['Fertility_Score']:.2f}")
+                st.metric("Nutrient Nitrogen", f"{regression_results['Nutrient_Nitrogen_mg_kg']:.2f} mg/kg")
+                st.metric("Nutrient Phosphorus", f"{regression_results['Nutrient_Phosphorus_mg_kg']:.2f} mg/kg")
+                st.metric("Water Retention", f"{regression_results['Water_Retention_Capacity']:.2f}")
+            
+            with col2:
+                st.metric("Nutrient Potassium", f"{regression_results['Nutrient_Potassium_mg_kg']:.2f} mg/kg")
+                st.metric("Organic Matter", f"{regression_results['Organic_Matter_%']:.2f}%")
+                st.metric("Lime Requirement", f"{regression_results['Lime_Requirement']:.2f}")
+                st.metric("Soil Erosion Risk", f"{regression_results['Soil_Erosion_Risk']:.2f}")
+            
+            # Soil Type Classification
+            st.markdown("#### Soil Type Classification")
+            st.success(f"Predicted Soil Type: {soil_type}")
+            
+        except Exception as e:
+            st.error(f"Error in prediction: {e}")
 
-    return pd.DataFrame(features, index=[0])
+    # About Section
+    st.sidebar.markdown("### About the Model")
+    st.sidebar.info(
+        "This AI model predicts soil characteristics based on various spectroscopic, "
+        "environmental, and geographical features. It provides insights into soil fertility, "
+        "nutrient content, and potential agricultural suitability."
+    )
 
-# User input features
-input_data = user_input_features()
-
-# Ensure input data is a pandas DataFrame with proper columns
-input_data = pd.DataFrame(input_data)
-
-# ColumnTransformer setup with all 18 features
-column_transformer = ColumnTransformer(
-    transformers=[
-        ('imputer', SimpleImputer(strategy='mean'), [
-            'NIR_Spectroscopy_900nm', 'NIR_Spectroscopy_2500nm', 'Nutrient_Nitrogen_mg_kg', 
-            'Nutrient_Phosphorus_mg_kg', 'Nutrient_Potassium_mg_kg', 'pH_Level', 
-            'Visible_Light_400nm', 'Visible_Light_700nm', 'Temperature_C', 
-            'Moisture_Content_%', 'Electrical_Conductivity_dS_m', 'Organic_Matter_%', 
-            'GPS_Latitude', 'GPS_Longitude', 'Time_of_Measurement', 'Feature_17', 'Feature_18', 'Feature_19'
-        ]),
-    ])
-
-# Apply the transformer to the input data (input_data is now a DataFrame)
-input_data_transformed = column_transformer.fit_transform(input_data)
-
-# Preprocess input data (standard scaling)
-scaler = StandardScaler()
-scaled_data = scaler.fit_transform(input_data_transformed)
-
-# Model predictions
-classification_pred = classification_model.predict(scaled_data)
-regression_pred = regression_model.predict(scaled_data)
-
-# Display predictions
-st.subheader('Classification Prediction (e.g., Soil Fertility Level)')
-st.write(classification_pred)
-
-st.subheader('Regression Predictions (e.g., Nutrient Levels, Organic Matter, etc.)')
-st.write(f'Nitrogen: {regression_pred[0][0]} mg/kg')
-st.write(f'Phosphorus: {regression_pred[0][1]} mg/kg')
-st.write(f'Potassium: {regression_pred[0][2]} mg/kg')
-st.write(f'Organic Matter: {regression_pred[0][3]}%')
-st.write(f'Water Retention Capacity: {regression_pred[0][4]}')
-st.write(f'Lime Requirement: {regression_pred[0][5]}')
-st.write(f'Soil Erosion Risk: {regression_pred[0][6]}')
+if __name__ == "__main__":
+    main()
