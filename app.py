@@ -38,7 +38,7 @@ def user_input_features():
     # Placeholder for any missing features
     feature_17 = 0.0  # Add missing feature here
     feature_18 = 0.0  # Add missing feature here
-    feature_18 = 0.0
+    feature_19 = 0.0
 
     features = {
         'NIR_Spectroscopy_900nm': NIR_Spectroscopy_900nm,
