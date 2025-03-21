@@ -35,6 +35,10 @@ def user_input_features():
     GPS_Longitude = st.sidebar.number_input('GPS_Longitude', value=0.0)
     Time_of_Measurement = st.sidebar.number_input('Time_of_Measurement', value=0.0)
 
+    # Placeholder for any missing features
+    feature_17 = 0.0  # Add missing feature here
+    feature_18 = 0.0  # Add missing feature here
+
     features = {
         'NIR_Spectroscopy_900nm': NIR_Spectroscopy_900nm,
         'NIR_Spectroscopy_2500nm': NIR_Spectroscopy_2500nm,
@@ -50,7 +54,11 @@ def user_input_features():
         'Organic_Matter_%': Organic_Matter_,
         'GPS_Latitude': GPS_Latitude,
         'GPS_Longitude': GPS_Longitude,
-        'Time_of_Measurement': Time_of_Measurement
+        'Time_of_Measurement': Time_of_Measurement,
+        'Feature_17': feature_17,  # Add missing feature
+        'Feature_18': feature_18,   # Add missing feature
+        'Feature_19': feature_19
+        
     }
 
     return pd.DataFrame(features, index=[0])
@@ -58,14 +66,16 @@ def user_input_features():
 # User input features
 input_data = user_input_features()
 
-# ColumnTransformer setup
+# ColumnTransformer setup with all 18 features
 column_transformer = ColumnTransformer(
     transformers=[
-        ('imputer', SimpleImputer(strategy='mean'), ['NIR_Spectroscopy_900nm', 'NIR_Spectroscopy_2500nm', 'Nutrient_Nitrogen_mg_kg', 
-                                                     'Nutrient_Phosphorus_mg_kg', 'Nutrient_Potassium_mg_kg', 'pH_Level', 
-                                                     'Visible_Light_400nm', 'Visible_Light_700nm', 'Temperature_C', 
-                                                     'Moisture_Content_%', 'Electrical_Conductivity_dS_m', 'Organic_Matter_%', 
-                                                     'GPS_Latitude', 'GPS_Longitude', 'Time_of_Measurement']),
+        ('imputer', SimpleImputer(strategy='mean'), [
+            'NIR_Spectroscopy_900nm', 'NIR_Spectroscopy_2500nm', 'Nutrient_Nitrogen_mg_kg', 
+            'Nutrient_Phosphorus_mg_kg', 'Nutrient_Potassium_mg_kg', 'pH_Level', 
+            'Visible_Light_400nm', 'Visible_Light_700nm', 'Temperature_C', 
+            'Moisture_Content_%', 'Electrical_Conductivity_dS_m', 'Organic_Matter_%', 
+            'GPS_Latitude', 'GPS_Longitude', 'Time_of_Measurement', 'Feature_17', 'Feature_18', 'Feature_19'
+        ]),
     ])
 
 # Apply the transformer to the input data
@@ -91,3 +101,21 @@ st.write(f'Organic Matter: {regression_pred[0][3]}%')
 st.write(f'Water Retention Capacity: {regression_pred[0][4]}')
 st.write(f'Lime Requirement: {regression_pred[0][5]}')
 st.write(f'Soil Erosion Risk: {regression_pred[0][6]}')
+'''
+
+# Save app.py content
+with open("app.py", "w") as app_file:
+    app_file.write(app_py_content)
+
+# Prepare requirements.txt
+requirements_txt_content = '''streamlit
+pandas
+scikit-learn
+joblib
+'''
+
+with open("requirements.txt", "w") as req_file:
+    req_file.write(requirements_txt_content)
+
+# Zip the directory for download
+shutil.make_archive("/mnt/data/soil_health_streamlit_updated", 'zip', "/mnt/data/soil_health_streamlit")
