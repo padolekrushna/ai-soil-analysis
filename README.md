@@ -1,3 +1,5 @@
+project link https://ai-soil-analysis-hilm9ff2jw9te5ttxntpfr.streamlit.app/
+
 # Soil Analysis AI - Streamlit Application
 
 This application uses machine learning to analyze soil properties and provide insights for agricultural decisions.
